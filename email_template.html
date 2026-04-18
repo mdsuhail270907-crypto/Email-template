@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Template — Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Demo Shell ── */
+    :root {
+      --shell-bg:   #f0ede8;
+      --toolbar-bg: #1a2d1e;
+      --toolbar-txt: #d4cfc8;
+      --green:      #1a3a2a;
+      --terra:      #c4603a;
+      --terra-lt:   #e8936e;
+      --cream:      #faf8f4;
+      --sand:       #ede8df;
+      --text:       #1c1c1c;
+      --muted:      #6b6560;
+      --radius:     10px;
+    }
+
+    body {
+      font-family: 'Nunito Sans', sans-serif;
+      background: var(--shell-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--toolbar-bg);
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
+
+    .toolbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      color: #fff;
+    }
+    .toolbar-brand span {
+      width: 28px; height: 28px;
+      background: var(--terra);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+
+    .device-switcher {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .dev-btn {
+      background: none;
+      border: none;
+      color: var(--toolbar-txt);
+      font-size: 12px;
+      font-family: 'Nunito Sans', sans-serif;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dev-btn.active {
+      background: var(--terra);
+      color: #fff;
+    }
+    .dev-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .toolbar-right {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .export-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 12px;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .export-btn:hover { background: rgba(255,255,255,0.18); }
+
+    /* ── Preview Stage ── */
+    .stage {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px 60px;
+      overflow-x: auto;
+    }
+
+    .preview-wrap {
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+      width: 680px;
+    }
+    .preview-wrap.tablet  { width: 480px; }
+    .preview-wrap.mobile  { width: 375px; }
+
+    .email-client {
+      background: #e8e4de;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .client-topbar {
+      background: #d8d3cc;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #e06055; }
+    .dot-y { background: #f5be4d; }
+    .dot-g { background: #5bc95b; }
+    .client-bar {
+      flex: 1;
+      background: rgba(255,255,255,0.5);
+      border-radius: 5px;
+      height: 22px;
+      margin-left: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    /* ═══════════════════════════════════════════
+       THE ACTUAL EMAIL TEMPLATE
+    ═══════════════════════════════════════════ */
+    .email-body {
+      background: var(--cream);
+      font-family: 'Nunito Sans', sans-serif;
+      color: var(--text);
+    }
+
+    /* ── Email Header / Preheader ── */
+    .email-preheader {
+      background: var(--green);
+      text-align: center;
+      padding: 8px 24px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.05em;
+    }
+    .email-preheader a { color: var(--terra-lt); text-decoration: none; }
+
+    /* ── Email Nav ── */
+    .email-nav {
+      background: var(--green);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .email-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .email-logo span { color: var(--terra-lt); }
+    .email-nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    .email-nav-links a {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .email-nav-links a:hover { color: #fff; }
+
+    /* ── Hero ── */
+    .email-hero {
+      background: var(--green);
+      padding: 56px 40px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .email-hero::before {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.06);
+      top: -80px; right: -60px;
+    }
+    .email-hero::after {
+      content: '';
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.04);
+      bottom: -40px; left: -40px;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      background: rgba(196,96,58,0.2);
+      color: var(--terra-lt);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 50px;
+      margin-bottom: 22px;
+      border: 1px solid rgba(196,96,58,0.3);
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .hero-title em { font-style: italic; color: var(--terra-lt); }
+    .hero-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      max-width: 420px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--terra);
+      color: #fff;
+      text-decoration: none;
+      padding: 14px 36px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 24px rgba(196,96,58,0.4);
+      transition: background 0.2s;
+    }
+    .hero-cta:hover { background: var(--terra-lt); }
+    .hero-badge {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* ── Divider Wave ── */
+    .wave-divider {
+      background: var(--green);
+      line-height: 0;
+    }
+    .wave-divider svg { display: block; }
+
+    /* ── Content Block ── */
+    .email-content {
+      padding: 48px 40px 32px;
+    }
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--terra);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      color: var(--green);
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    .section-body {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+
+    /* ── Feature Cards ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 32px 0;
+    }
+    .feature-card {
+      background: var(--sand);
+      border-radius: 12px;
+      padding: 22px 20px;
+      border-left: 3px solid var(--terra);
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    .feature-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      background: var(--green);
+      padding: 32px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      text-align: center;
+    }
+    .stat-item {
+      padding: 0 20px;
+    }
+    .stat-item + .stat-item {
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 30px;
+      color: var(--terra-lt);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Testimonial ── */
+    .testimonial-block {
+      padding: 40px 40px;
+      background: var(--sand);
+      text-align: center;
+    }
+    .testimonial-block blockquote {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: var(--green);
+      line-height: 1.6;
+      max-width: 460px;
+      margin: 0 auto 20px;
+    }
+    .testimonial-block blockquote::before { content: '\201C'; color: var(--terra); font-size: 40px; line-height: 0; vertical-align: -14px; margin-right: 4px; }
+    .testimonial-block blockquote::after  { content: '\201D'; color: var(--terra); font-size: 40px; line-height: 0; vertical-align: -14px; margin-left: 4px; }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .author-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--terra), var(--green));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .author-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .author-role {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Offer Banner ── */
+    .offer-banner {
+      margin: 0 40px 32px;
+      background: linear-gradient(135deg, var(--terra) 0%, #a04a28 100%);
+      border-radius: 14px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .offer-text h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .offer-text p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+    }
+    .offer-code {
+      background: rgba(255,255,255,0.15);
+      border: 1.5px dashed rgba(255,255,255,0.5);
+      border-radius: 8px;
+      padding: 8px 18px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .offer-code .code {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.1em;
+      display: block;
+    }
+    .offer-code .code-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── Social Row ── */
+    .social-row {
+      text-align: center;
+      padding: 28px 40px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+    }
+    .social-row p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .social-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--sand);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      text-decoration: none;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .social-icon:hover { transform: translateY(-2px); background: var(--terra); }
+
+    /* ── Footer ── */
+    .email-footer {
+      background: #111e14;
+      padding: 32px 40px;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 14px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--terra-lt); }
+    .footer-address {
+      font-size: 11px;
+      color: rgba(255,255,255,0.25);
+      line-height: 1.7;
+    }
+    .footer-unsubscribe {
+      margin-top: 14px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+    }
+    .footer-unsubscribe a {
+      color: rgba(255,255,255,0.35);
+      text-decoration: underline;
+    }
+
+    /* ── Responsive (mobile preview) ── */
+    @media (max-width: 480px) {
+      .email-nav-links { display: none; }
+      .hero-title { font-size: 26px; }
+      .email-nav, .email-hero, .email-content, .testimonial-block, .social-row { padding-left: 20px; padding-right: 20px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: 1fr; }
+      .stat-item + .stat-item { border-left: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 20px; }
+      .offer-banner { flex-direction: column; margin: 0 20px 32px; text-align: center; }
+      .email-footer { padding: 28px 20px; }
+      .stats-bar { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Demo Toolbar ── -->
+<div class="toolbar">
+  <div class="toolbar-brand">
+    <span>✉</span>
+    Email Template Demo
+  </div>
+
+  <div class="device-switcher">
+    <button class="dev-btn active" onclick="setDevice('desktop', this)">
+      🖥 Desktop
+    </button>
+    <button class="dev-btn" onclick="setDevice('tablet', this)">
+      📱 Tablet
+    </button>
+    <button class="dev-btn" onclick="setDevice('mobile', this)">
+      📲 Mobile
+    </button>
+  </div>
+
+  <div class="toolbar-right">
+    <button class="export-btn" onclick="window.print()">⬇ Export</button>
+  </div>
+</div>
+
+<!-- ── Preview Stage ── -->
+<div class="stage">
+  <div class="preview-wrap" id="previewWrap">
+    <div class="email-client">
+
+      <!-- Client top-bar (mock email browser chrome) -->
+      <div class="client-topbar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="client-bar">📧&nbsp; From: hello@verdantco.com · Subject: Your exclusive offer is waiting ✦</div>
+      </div>
+
+      <!-- ════════════════════════════
+           EMAIL BODY
+      ════════════════════════════ -->
+      <div class="email-body">
+
+        <!-- Preheader -->
+        <div class="email-preheader">
+          View this email in your browser &nbsp;|&nbsp; <a href="#">Unsubscribe</a>
+        </div>
+
+        <!-- Nav -->
+        <div class="email-nav">
+          <div class="email-logo">Verdant<span>.</span></div>
+          <div class="email-nav-links">
+            <a href="#">Shop</a>
+            <a href="#">Journal</a>
+            <a href="#">About</a>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="email-hero">
+          <div class="hero-eyebrow">✦ New Collection · Spring 2025</div>
+          <div class="hero-title">
+            Crafted for the<br /><em>Curious Mind</em>
+          </div>
+          <div class="hero-sub">
+            Discover products designed with intention — where sustainable materials meet timeless design. Your exclusive early access starts now.
+          </div>
+          <a href="#" class="hero-cta">Shop the Collection</a>
+          <div class="hero-badge">🔒 Free shipping on orders over $50</div>
+        </div>
+
+        <!-- Wave -->
+        <div class="wave-divider">
+          <svg viewBox="0 0 600 40" preserveAspectRatio="none" height="40" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,20 C150,40 450,0 600,20 L600,0 L0,0 Z" fill="#1a3a2a"/>
+          </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="email-content">
+          <div class="section-label">Why Verdant</div>
+          <div class="section-title">Designed to Last.<br />Made to Matter.</div>
+          <div class="section-body">
+            Every piece in our Spring collection is crafted from responsibly sourced materials and built to stand the test of time. We believe good design should never compromise the planet.
+          </div>
+
+          <div class="feature-grid">
+            <div class="feature-card">
+              <span class="feature-icon">🌿</span>
+              <div class="feature-title">Sustainably Sourced</div>
+              <div class="feature-desc">Every material traced from origin to shelf. Zero compromise on ethics.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">✦</span>
+              <div class="feature-title">Visually Appealing</div>
+              <div class="feature-desc">Timeless aesthetics designed by makers who care about beauty.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">📱</span>
+              <div class="feature-title">Responsive Design</div>
+              <div class="feature-desc">Looks stunning on any device — desktop, tablet, or mobile.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">🔒</span>
+              <div class="feature-title">Secure Checkout</div>
+              <div class="feature-desc">256-bit SSL encryption. Your data, protected at every step.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <span class="stat-num">48k+</span>
+            <div class="stat-lbl">Happy Customers</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">98%</span>
+            <div class="stat-lbl">Satisfaction Rate</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">12+</span>
+            <div class="stat-lbl">Countries Shipped</div>
+          </div>
+        </div>
+
+        <!-- Testimonial -->
+        <div class="testimonial-block">
+          <blockquote>
+            Verdant changed how I think about everyday products. The quality is unmatched and the packaging is beautiful.
+          </blockquote>
+          <div class="testimonial-author">
+            <div class="author-avatar">S</div>
+            <div>
+              <div class="author-name">Sophia R.</div>
+              <div class="author-role">Verified Customer · London, UK</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Offer Banner -->
+        <div class="offer-banner">
+          <div class="offer-text">
+            <h3>Exclusive Subscriber Offer</h3>
+            <p>20% off your first order — limited time only. No minimum spend.</p>
+          </div>
+          <div class="offer-code">
+            <span class="code">SPRING20</span>
+            <span class="code-label">Use at checkout</span>
+          </div>
+        </div>
+
+        <!-- Social -->
+        <div class="social-row">
+          <p>Follow us for daily inspiration</p>
+          <div class="social-icons">
+            <a class="social-icon" href="#" title="Instagram">📸</a>
+            <a class="social-icon" href="#" title="Twitter/X">🐦</a>
+            <a class="social-icon" href="#" title="Pinterest">📌</a>
+            <a class="social-icon" href="#" title="Facebook">👍</a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+          <div class="footer-logo">Verdant<span style="color:var(--terra);">.</span></div>
+          <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Contact Us</a>
+            <a href="#">Help Centre</a>
+          </div>
+          <div class="footer-address">
+            Verdant Co. Ltd · 14 Botanical Lane · London, EC2A 4NE · United Kingdom
+          </div>
+          <div class="footer-unsubscribe">
+            You received this email because you subscribed to Verdant updates.<br/>
+            <a href="#">Unsubscribe</a> · <a href="#">Manage Preferences</a>
+          </div>
+        </div>
+
+      </div>
+      <!-- /email-body -->
+
+    </div>
+    <!-- /email-client -->
+  </div>
+  <!-- /preview-wrap -->
+</div>
+
+<script>
+  function setDevice(mode, btn) {
+    document.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const wrap = document.getElementById('previewWrap');
+    wrap.className = 'preview-wrap';
+    if (mode === 'tablet') wrap.classList.add('tablet');
+    if (mode === 'mobile') wrap.classList.add('mobile');
+  }
+</script>
+</body>
+</html>
